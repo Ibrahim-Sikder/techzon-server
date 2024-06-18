@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { TProduct } from './product.interface';
+import { Brands, Category, Colors } from './product.constant';
 
 const productSchema = new Schema<TProduct>(
   {
@@ -31,13 +32,14 @@ const productSchema = new Schema<TProduct>(
     brand: [
       {
         type: String,
+        enum: Brands,
         required: [true, 'Brand is required'],
- 
       },
     ],
     color: [
       {
         type: String,
+        enum: Colors,
         required: [true, 'Color  is required'],
       },
     ],
@@ -48,8 +50,8 @@ const productSchema = new Schema<TProduct>(
     categories: [
       {
         type: String,
+        enum: Category,
         required: [true, 'Categories is required'],
-     
       },
     ],
     stock: {
@@ -58,9 +60,8 @@ const productSchema = new Schema<TProduct>(
     },
     meta_title: { type: String, required: false },
     meta_description: { type: String, required: false },
-    meta_keywords: [{ type: String, required: false }],
-    deletedAt: { type: Date, required: false },
-    isDeleted: { type: Boolean, default: false },
+    meta_keywords: { type: String},
+    isDeleted: { type: Boolean},
     active: {
       type: Boolean,
     },

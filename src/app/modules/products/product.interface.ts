@@ -1,24 +1,24 @@
-
+export type Brands = ['samsun','apple','nokia']
+export type Category = ['electronic','mobile','laptop']
+export type Tags = ['exclusive','new_arrival','on_sale']
+export type Colors = ['red','green','blue']
 export type TProduct = {
   name: string;
   price: number;
   discountPrice: number;
-  sku?: string; // Optional since you've defined it as required: false in schema
+  sku?: string;
   slug: string;
-  tag: string[];
-  brand: string; // Array of ObjectId
-  color: string[];
+  tag: Tags[];
+  brand: Brands[];
+  color: Colors[];
   size: string;
-  categories: string; // Array of ObjectId
+  categories: Category[];
   stock: number;
-  description: string; // Assuming description exists but is not defined in your schema
+  description: string;
   rating: number;
-  meta_title?: string; // Optional since you've defined it as required: false in schema
-  meta_description?: string; // Optional since you've defined it as required: false in schema
-  meta_keywords?: string[]; // Optional since you've defined it as required: false in schema
-  createdAt?: Date; // Assuming these fields are managed by Mongoose timestamps
-  updatedAt?: Date; // Assuming these fields are managed by Mongoose timestamps
-  deletedAt?: Date; // Optional since you've defined it as required: false in schema
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
   isDeleted: boolean;
   active: boolean;
 };
