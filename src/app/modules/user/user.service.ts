@@ -3,7 +3,7 @@ import httpStatus from 'http-status';
 import { AppError } from '../../error/AppError';
 import { TUser } from './user.interface';
 import { User } from './user.model';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import config from '../../config';
 
 const userRegister = async (payload: TUser) => {
@@ -38,24 +38,37 @@ const userLogin = async (payload: any) => {
   return { accessToken, refreshToken };
 };
 
-const changePassword = async (payload:{oldPassword:string,newPassword:string}) => {
+const changePassword = async (payload: {
+  oldPassword: string;
+  newPassword: string;
+}) => {
   const user = await User.findOne();
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'User not found');
   }
-  if(user.password !== payload.oldPassword){
+  if (user.password !== payload.oldPassword) {
     throw new AppError(httpStatus.NOT_FOUND, 'Password do not matched!');
   }
 
   const result = User.findOneAndUpdate({
-    password: payload?.newPassword
-
-  })
+    password: payload?.newPassword,
+  });
   return result;
+};
+const refreshToken = async (token: string) => {
+  const decoded = jwt.verify(
+    token,
+    config.jwt_refresh_secret as string,
+  ) as JwtPayload;
+  console.log(decoded)
+
+  const { userId, iat } = decoded;
+  console.log(userId, iat);
 };
 
 export const UserService = {
   userRegister,
   userLogin,
   changePassword,
+  refreshToken,
 };
