@@ -1,64 +1,61 @@
-import mongoose from 'mongoose';
-import config from '../../config';
-import { TStudent } from '../student/student.interface';
-import { Student } from '../student/student.model';
-import { AcademicSemester } from './../academicSemester/academicSemester.model';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import httpStatus from 'http-status';
+import { AppError } from '../../error/AppError';
 import { TUser } from './user.interface';
 import { User } from './user.model';
-import { generateStudentId } from './user.utils';
-import { AppError } from '../../error/AppError';
-import httpStatus from 'http-status';
+import jwt from 'jsonwebtoken';
+import config from '../../config';
 
-const createStudentIntoDB = async (password: string, payload: TStudent) => {
-  // create a user object
-  const userData: Partial<TUser> = {};
+const userRegister = async (payload: TUser) => {
+  const result = User.create(payload);
+  return result;
+};
+const userLogin = async (payload: any) => {
+  const user = await User.findOne({
+    email: payload?.email,
+    password: payload?.password,
+  });
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  }
 
-  //if password is not given , use deafult password
-  userData.password = password || (config.default_pass as string);
+  const jwtPayload = {
+    email: user?.email,
+    password: user?.password,
+  };
 
-  //set student role
-  userData.role = 'student';
-
-  // find academic semester info
-  const admissionSemester = await AcademicSemester.findById(
-    payload.admissionSemester,
+  const accessToken = jwt.sign(jwtPayload, config.jwt_access_secret as string, {
+    expiresIn: config.jwt_access_expires_in,
+  });
+  const refreshToken = jwt.sign(
+    jwtPayload,
+    config.jwt_refresh_secret as string,
+    {
+      expiresIn: config.jwt_refresh_expires_in,
+    },
   );
 
-  const session = await mongoose.startSession();
-
-  try {
-    session.startTransaction();
-
-    //set  generated id
-    userData.id = await generateStudentId(admissionSemester);
-
-    // create a user
-    const newUser = await User.create([userData], { session });
-
-    //create a student
-    if (!newUser.length) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create user!');
-    }
-
-    // set id , _id as user
-    payload.id = newUser[0].id;
-    payload.user = newUser[0]._id; //reference _id
-
-    const newStudent = await Student.create([payload], { session });
-    if (!newStudent.length) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create student!');
-    }
-    await session.commitTransaction()
-    await session.endSession()
-
-    return newStudent;
-  } catch (err) {
-    await session.abortTransaction()
-    await session.endSession()
-    throw new Error('Failed to create student! ')
-  }
+  return { accessToken, refreshToken };
 };
 
-export const UserServices = {
-  createStudentIntoDB,
+const changePassword = async (payload:{oldPassword:string,newPassword:string}) => {
+  const user = await User.findOne();
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  if(user.password !== payload.oldPassword){
+    throw new AppError(httpStatus.NOT_FOUND, 'Password do not matched!');
+  }
+
+  const result = User.findOneAndUpdate({
+    password: payload?.newPassword
+
+  })
+  return result;
+};
+
+export const UserService = {
+  userRegister,
+  userLogin,
+  changePassword,
 };
