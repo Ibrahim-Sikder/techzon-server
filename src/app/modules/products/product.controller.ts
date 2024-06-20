@@ -4,7 +4,8 @@ import { sendResponse } from '../../utils/sendResponse';
 import { ProductServices } from './product.service';
 
 const createProduct = catchAsync(async (req, res) => {
-  const result = await ProductServices.createProduct(req.body);
+  console.log(req.body.data)
+  const result = await ProductServices.createProduct(req.file,req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -12,6 +13,7 @@ const createProduct = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
 const getAllProduct = catchAsync(async (req, res) => {
   const result = await ProductServices.getAllProduct();
   sendResponse(res, {

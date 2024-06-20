@@ -1,32 +1,44 @@
-import { v2 as cloudinary } from 'cloudinary';
-import config from '../config';
-import multer from 'multer';
+import { UploadApiResponse, v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import path from 'path';
+import multer from 'multer';
+import config from '../config';
 
-export const sendImageToCloudinary = () => {
-  cloudinary.config({
-    cloud_name: config.cloudinary_name,
-    api_key: config.cloudinary_api_key,
-    api_secret: config.cloudinary_secret,
-  });
+cloudinary.config({
+  cloud_name: config.cloudinary_name,
+  api_key: config.cloudinary_api_key,
+  api_secret: config.cloudinary_secret,
+});
 
-  cloudinary.uploader.upload(
-    'https://res.cloudinary.com/demo/image/upload/getting-started/shoes.jpg',
-    { public_id: 'shoes' }
-  )
-  .then((result) => {
-    console.log('Upload successful:', result);
-  })
-  .catch((error) => {
-    console.error('Upload failed:', error);
+export const sendImageToCloudinary = (
+  imageName: string,
+  filePath: string,
+): Promise<Record<string, unknown>> => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.upload(
+      filePath,
+      { public_id: imageName.trim() },
+      function (error, result) {
+        if (error) {
+          reject(error);
+        }
+        resolve(result as UploadApiResponse);
+        // delete the file asynchronously
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log('File is deleted.');
+          }
+        });
+      },
+    );
   });
 };
 
-// Define the uploads directory
+// Ensure the uploads directory exists
 const uploadsDir = path.join(process.cwd(), 'uploads');
 
-// Ensure the uploads directory exists
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -36,9 +48,10 @@ const storage = multer.diskStorage({
     cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, file.fieldname + '-' + uniqueSuffix);
-  }
+  },
 });
 
 export const upload = multer({ storage: storage });
+

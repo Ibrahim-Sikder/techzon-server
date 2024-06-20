@@ -22,6 +22,7 @@ const productSchema = new Schema<TProduct>(
       required: [true, 'Price is required'],
     },
     sku: { type: String, required: false },
+    image: { type: String, required: true },
     tag: [
       {
         type: String,
@@ -60,8 +61,8 @@ const productSchema = new Schema<TProduct>(
     },
     meta_title: { type: String, required: false },
     meta_description: { type: String, required: false },
-    meta_keywords: { type: String},
-    isDeleted: { type: Boolean},
+    meta_keywords: { type: String },
+    isDeleted: { type: Boolean },
     active: {
       type: Boolean,
     },

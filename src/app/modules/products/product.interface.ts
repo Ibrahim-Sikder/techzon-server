@@ -21,4 +21,5 @@ export type TProduct = {
   meta_keywords?: string;
   isDeleted: boolean;
   active: boolean;
+  image: string
 };
